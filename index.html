@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flapping Wings</title>
+    <title>Flappy Bird</title>
     <style>
         body {
             text-align: center;
             background-color: skyblue;
             font-family: Arial, sans-serif;
+            overflow: auto; /* Allow scrolling */
+            height: 100vh;
         }
         canvas {
             background: url('flappybirdbg.webp');
@@ -59,7 +61,7 @@
     </style>
 </head>
 <body>
-    <h1>Flapping Wings</h1>
+    <h1>Flappy Bird</h1>
     <canvas id="gameCanvas" width="360" height="640"></canvas>
 
     <!-- Start Button -->
@@ -95,15 +97,14 @@
             score = 0;
             gameOver = false;
             gameOverContainer.style.display = "none";
-
-            // Show the start button at the beginning
             document.getElementById("startContainer").style.display = "block";
         }
 
         function startGame() {
-            document.getElementById("startContainer").style.display = "none"; // Hide Start Button
-            pipeInterval = setInterval(generatePipes, 2000); // Start pipes
-            updateGame(); // Start game loop
+            document.getElementById("startContainer").style.display = "none"; 
+            pipes = []; 
+            pipeInterval = setInterval(generatePipes, 2000); 
+            updateGame(); 
         }
 
         function drawBird() {
@@ -112,7 +113,13 @@
 
         function drawPipes() {
             pipes.forEach(pipe => {
+                ctx.save(); 
                 ctx.drawImage(pipe.img, pipe.x, pipe.y, pipe.width, pipe.height);
+                ctx.globalCompositeOperation = "source-atop"; 
+                ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
+                ctx.fillRect(pipe.x, pipe.y, pipe.width, pipe.height);
+                ctx.globalCompositeOperation = "source-over";
+                ctx.restore(); 
             });
         }
 
@@ -123,13 +130,12 @@
         }
 
         function generatePipes() {
-            let gap = 120;
+            let gap = 100; 
             let minPipeHeight = 50;
             let maxPipeHeight = canvas.height - gap - minPipeHeight;
             let pipeHeight = Math.random() * (maxPipeHeight - minPipeHeight) + minPipeHeight;
-            let pipeX = canvas.width;
+            let pipeX = canvas.width + 100; 
 
-            // Top Pipe
             pipes.push({
                 x: pipeX,
                 y: 0,
@@ -138,7 +144,6 @@
                 img: topPipeImg
             });
 
-            // Bottom Pipe
             pipes.push({
                 x: pipeX,
                 y: pipeHeight + gap,
@@ -151,15 +156,13 @@
         function movePipes() {
             pipes.forEach((pipe, index) => {
                 pipe.x -= 2;
-
-                // Increase the score when the bird crosses the first pipe of the pair
                 if (index % 2 === 0 && bird.x > pipe.x + pipe.width && !pipe.passed) {
-                    score++;  // Increment score
+                    score++; 
                     pipe.passed = true;
                 }
-
                 if (checkCollision(bird, pipe)) gameOver = true;
             });
+            pipes = pipes.filter(pipe => pipe.x + pipe.width > 0);
         }
 
         function checkCollision(bird, pipe) {
@@ -186,9 +189,9 @@
         }
 
         function restartGame() {
-            clearInterval(pipeInterval); // Stop old pipe generation
+            clearInterval(pipeInterval);
             initGame();
-            startGame(); // Restart game properly
+            startGame(); 
         }
 
         document.addEventListener("keydown", function(event) {
@@ -203,8 +206,8 @@
             }
         });
 
-        // Initialize game, but don't start it
         window.onload = initGame;
     </script>
 </body>
 </html>
+
